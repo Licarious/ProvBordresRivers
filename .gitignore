@@ -1,0 +1,9 @@
+﻿################################################################################
+# This .gitignore file was automatically created by Microsoft(R) Visual Studio.
+################################################################################
+
+/_Output/04_compare.png
+/_Output/03_updated_map.png
+/_Output/02_one_sided.png
+/_Output/01_crossing.png
+/_Output/00_along_river.png
