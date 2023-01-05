@@ -1,0 +1,11 @@
+{
+  "version": 2,
+  "dgSpecHash": "p1axOQlEd3lZMQSMZcsWWZly1vYPf8oBEsw27YpHkwpErDHG8cMA0mxi/liQRW6NJHWAxjZlAv4CJG7lKrnJPQ==",
+  "success": true,
+  "projectFilePath": "C:\\Users\\fligh\\OneDrive\\Desktop\\Vic3\\ProvBordresRivers\\ProvBordresRivers\\ProvBordresRivers.csproj",
+  "expectedPackageFiles": [
+    "C:\\Users\\fligh\\.nuget\\packages\\microsoft.win32.systemevents\\6.0.0\\microsoft.win32.systemevents.6.0.0.nupkg.sha512",
+    "C:\\Users\\fligh\\.nuget\\packages\\system.drawing.common\\6.0.0\\system.drawing.common.6.0.0.nupkg.sha512"
+  ],
+  "logs": []
+}
