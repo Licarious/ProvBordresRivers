@@ -4,18 +4,18 @@ public class Prov
 {
     public string name = "";
     public int provID = -1;
-    public Color color = new Color();
-    public List<(int, int)> coords = new List<(int, int)>();
-    public List<(int, int)> coordsRiverless = new List<(int, int)>();
-    public List<(int, int)> coordsLargestContig = new List<(int, int)>();
-    public List<(int, int)> otherCoords = new List<(int, int)>();
-    public List<(int, int)> riverCoords = new List<(int, int)>();
+    public Color color = new();
+    public List<(int, int)> coords = new();
+    public List<(int, int)> coordsRiverless = new();
+    public List<(int, int)> coordsLargestContig = new();
+    public List<(int, int)> otherCoords = new();
+    public List<(int, int)> riverCoords = new();
     public bool isWater = false;
     public bool isWasteland = false;
     public bool isContiguous = true;
 
     //hash set of coords
-    public HashSet<(int, int)> coordSet = new HashSet<(int, int)>();
+    public HashSet<(int, int)> coordSet = new();
 
     
 
@@ -26,12 +26,12 @@ public class Prov
     }
 
     //Get HexColor
-    public string getHexColor() {
+    public string GetHexColor() {
         return ColorTranslator.ToHtml(color).Replace("#", "x");
     }
 
     //set HashSet
-    public void setHashSet() {
+    public void SetHashSet() {
         foreach ((int, int) coord in coords) {
             coordSet.Add(coord);
         }
@@ -39,11 +39,19 @@ public class Prov
 
     //toString override
     public override string ToString() {
-        return getHexColor();
+        if (provID > -1)
+            return "prov "+provID.ToString();
+        return GetHexColor();
     }
 
     //Get Contiguous Area
-    public void getContiguousArea() {
+    public void GetContiguousArea() {
+        //don't let it crash via stack overflow
+        if(coordsRiverless.Count> 8000) {
+            Console.WriteLine("\t"+this + " is to big, skipping");
+            return;
+        }
+
         //find min and max x,y values in coordsRiverless
         int minX = coordsRiverless[0].Item1;
         int maxX = coordsRiverless[0].Item1;
@@ -87,8 +95,8 @@ public class Prov
             for (int j = 0; j < maxY - minY + 1; j++) {
                 if (intArray[i, j] == 1) {
                     int contig = 0;
-                    List<(int, int)> contigCoords = new List<(int, int)>();
-                    contig = getContig(intArray, i, j, contig, contigCoords, minX, minY);
+                    List<(int, int)> contigCoords = new();
+                    contig = GetContig(intArray, i, j, contig, contigCoords, minX, minY);
                     if (contig > largestContig) {
                         largestContig = contig;
                         coordsLargestContig = contigCoords;
@@ -114,7 +122,7 @@ public class Prov
     }
 
     //getContig
-    public int getContig(int[,] intArray, int i, int j, int contig, List<(int, int)> contigCoords, int minX = 0, int minY = 0) {
+    public int GetContig(int[,] intArray, int i, int j, int contig, List<(int, int)> contigCoords, int minX = 0, int minY = 0) {
         if (i < 0 || i >= intArray.GetLength(0) || j < 0 || j >= intArray.GetLength(1)) {
             return contig;
         }
@@ -125,10 +133,10 @@ public class Prov
             contig++;
             contigCoords.Add((i + minX, j + minY));
             intArray[i, j] = 0;
-            contig = getContig(intArray, i + 1, j, contig, contigCoords, minX, minY);
-            contig = getContig(intArray, i - 1, j, contig, contigCoords, minX, minY);
-            contig = getContig(intArray, i, j + 1, contig, contigCoords, minX, minY);
-            contig = getContig(intArray, i, j - 1, contig, contigCoords, minX, minY);
+            contig = GetContig(intArray, i + 1, j, contig, contigCoords, minX, minY);
+            contig = GetContig(intArray, i - 1, j, contig, contigCoords, minX, minY);
+            contig = GetContig(intArray, i, j + 1, contig, contigCoords, minX, minY);
+            contig = GetContig(intArray, i, j - 1, contig, contigCoords, minX, minY);
             return contig;
         }
         return contig;

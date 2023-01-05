@@ -6,7 +6,7 @@ using System.Linq;
 internal class Program{
     private static void Main() {
         //which game are you using this for? 
-        string game = "Vic3"; //    "Vic3" for Victoria 3, "CK3" for Crusader Kings 3 and Imperator: Rome,
+        string game = "CK3"; //    "Vic3" for Victoria 3, "CK3" for Crusader Kings 3 and Imperator: Rome,
                               //only set up for Vic3
 
         string localDir = Directory.GetParent(Directory.GetCurrentDirectory()).Parent.Parent.FullName;
@@ -44,8 +44,14 @@ internal class Program{
         Dictionary<Color, Prov> provDict = new();
         
         ParseProvMap(provDict, colorArray);
-        
-        parseDefaultMap(provDict);
+
+        if (game.ToLower().Contains("vic3")) {
+            ParseDefaultMapVic3(provDict);
+        }
+        else if(game.ToLower().Contains("ck3") || game.ToLower().Contains("ir")) {
+            ParseDeffinitionsCK3(provDict);
+            ParseDefaultMapCK3(provDict);
+        }
 
         //set riverCoordSet to riverCoordList
         HashSet<(int, int)> riverCoordSet = new();
@@ -57,7 +63,7 @@ internal class Program{
         //add every prov in provDict whos coordlist contains a riverCoord to list
         List<Prov> riverSplittingProvList = new();
         foreach (Prov p in provDict.Values) {
-            p.setHashSet();
+            p.SetHashSet();
             if (!riverSplittingProvList.Contains(p)) {
                 if (p.coords.Intersect(riverCoordSet).Any()) {
                     riverSplittingProvList.Add(p);
@@ -114,7 +120,38 @@ internal class Program{
 
         }
 
-        void parseDefaultMap(Dictionary<Color, Prov> provDict) {
+        void ParseDeffinitionsCK3(Dictionary<Color, Prov> provDict) {
+            //check if localDir + "/_Input/definition.csv" exists, if not print error and exit
+            if (!File.Exists(localDir + @"\_Input\definition.csv")) {
+                Console.WriteLine("Error: No definition.csv found in _Input folder, please add one and try again");
+                Console.ReadKey();
+                Environment.Exit(0);
+            }
+
+            Console.WriteLine("Parsing Definitions");
+            //read all lines in definition.csv
+            string[] lines = File.ReadAllLines(localDir + @"\_Input\definition.csv");
+            //for each line in lines
+            foreach (string line in lines) {
+                if (line.Trim().StartsWith("#")) continue;
+
+                //split line by comma
+                string[] split = line.Split(';');
+                //if split[0] is not a number continue
+                if (!int.TryParse(split[0], out _)) continue;
+                //split 0 is the provID and the next 3 are the rgb values
+                int provID = int.Parse(split[0]);
+                Color color = Color.FromArgb(int.Parse(split[1]), int.Parse(split[2]), int.Parse(split[3]));
+
+                //if provDict contains color then set provID to provDict[color].provID
+                if (provDict.ContainsKey(color)) {
+                    provDict[color].provID = provID;
+                }
+
+            }
+        }
+
+        void ParseDefaultMapVic3(Dictionary<Color, Prov> provDict) {
             //open _Input/Vic3/default.map
             string[] lines = File.ReadAllLines(localDir + "/_Input/default.map");
 
@@ -144,6 +181,88 @@ internal class Program{
                         }
                     }
 
+                }
+            }
+        }
+
+        void ParseDefaultMapCK3(Dictionary<Color, Prov> provDict) {
+            //check if localDir + "/_Input/default.map" exists, if not print error and exit
+            if (!File.Exists(localDir + @"\_Input\default.map")) {
+                Console.WriteLine("Error: No default.map found in _Input folder, please add one and try again");
+                Console.ReadKey();
+                Environment.Exit(0);
+            }
+
+            string[] lines = File.ReadAllLines(localDir + @"\_Input\default.map");
+            List<int> ids = new();
+            bool isRange = true;
+            bool rangeListFound = false;
+            foreach (string line in lines) {
+                //if line strip starts with # continue
+                if (line.TrimStart().StartsWith("#") || line.Trim() == "") continue;
+
+                string l1 = line.Replace("=", " = ").Replace("{", " { ").Replace("}", " } ").Replace("#", " # ").Trim();
+                string[] split = l1.Split(' ');
+
+                string type = split[0].ToLower();
+
+                if (line.Contains('{')) {
+                    rangeListFound = true;
+                    isRange = true;
+                    ids = new List<int>();
+                }
+
+
+                foreach (string e in split) {
+                    if (e.StartsWith("#")) break;
+
+                    //RANGE
+                    if (e.ToLower() == "range") isRange = true;
+                    //LIST
+                    else if (e.ToLower() == "list") isRange = false;
+
+                    //if e is an int
+                    else if (int.TryParse(e, out int id)) {
+                        //if range is true
+                        if (isRange) {
+                            //if ids is empty add id to ids
+                            if (ids.Count == 0) ids.Add(id);
+                            //if ids is not empty
+                            else {
+                                //if id is greater than the last element in ids
+                                if (id > ids.Last()) {
+                                    //add all the numbers between the last element in ids and id to ids
+                                    for (int i = ids.Last() + 1; i <= id; i++) ids.Add(i);
+                                }
+                                //if id is less than the last element in ids
+                                else if (id < ids.Last()) {
+                                    //add all the numbers between the last element in ids and id to ids
+                                    for (int i = ids.Last() - 1; i >= id; i--) ids.Add(i);
+                                }
+                                //if id is equal to the last element in ids
+                                else ids.Add(id);
+                            }
+                        }
+                        //if range is false
+                        else ids.Add(id);
+                    }
+
+
+
+                }
+                if (line.Contains('}') && rangeListFound) {
+                    rangeListFound = false;
+                    foreach (int i in ids) {
+                        if (type.ToLower().Contains("sea") || type.ToLower().Contains("lake") || type.ToLower().Contains("river")) {
+                            //find value in provDict with provID = i
+                            foreach (var p in provDict.Values) {
+                                if (p.provID == i) {
+                                    p.isWater = true;
+                                    break;
+                                }
+                            }
+                        }
+                    }
                 }
             }
         }
@@ -182,7 +301,7 @@ internal class Program{
             foreach (Prov p in riverSplittingProvList) {
                 if (p.isWater) continue;
 
-                p.getContiguousArea();
+                p.GetContiguousArea();
 
                 //if coordsLargestContig == coordsRiverless then the prov is not split by a river and can be skiped
                 if (p.coordsLargestContig.Count == p.coordsRiverless.Count) {
