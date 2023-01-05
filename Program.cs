@@ -3,9 +3,9 @@ using System.Drawing;
 using System.Linq;
 
 
-//which game are you using this for?
+//which game are you using this for? 
 string game = "Vic3"; //    "Vic3" for Victoria 3, "CK3" for Crusader Kings 3 and Imperator: Rome,
-
+//only set up for Vic3
 
 string localDir = Directory.GetParent(Directory.GetCurrentDirectory()).Parent.Parent.FullName;
 
@@ -16,7 +16,8 @@ Stopwatch stopwatch = Stopwatch.StartNew();
 Bitmap riverBmp = new Bitmap(localDir + @"\_Input\rivers.png");
 List<Color> NotRiverColors = new() {
     Color.FromArgb(255, 255, 255),  //land
-    Color.FromArgb(122, 122, 122)   //water grey
+    Color.FromArgb(122, 122, 122),  //water grey
+    Color.FromArgb(255, 0, 128)     //water pink
 };
 
 List<(int x, int y)> riverCoordList = new List<(int x, int y)>();
@@ -305,6 +306,11 @@ Console.WriteLine("River Containing Provs: " + riverSplittingProvList.Count);
 
 //draw all riverSplittingProvList to a new image and save it
 void debugDrawRiverSplitingProvs(List<Prov> riverSplittingProvList) {
+    //check if _Output/ exists, if not, create it
+    if (!Directory.Exists(localDir + "/_Output/")) {
+        Directory.CreateDirectory(localDir + "/_Output/");
+    }
+
     //get size of province png file and create new bitmap with that size and graphics object 
     Bitmap bmp1 = new Bitmap(localDir + "/_Input/provinces.png");
 
