@@ -7,7 +7,7 @@ internal class Program{
     private static void Main() {
         //which game are you using this for? 
         string game = "CK3"; //    "Vic3" for Victoria 3, "CK3" for Crusader Kings 3 and Imperator: Rome,
-                              //only set up for Vic3
+                              
 
         string localDir = Directory.GetParent(Directory.GetCurrentDirectory()).Parent.Parent.FullName;
 
